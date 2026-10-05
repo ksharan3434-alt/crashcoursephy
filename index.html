@@ -441,6 +441,27 @@
     .rs-live{font-size:.72rem;letter-spacing:.12em;padding:8px 14px;}
     .rs-scroll{margin-top:18px;}
   }
+  /* --- PHONE/TABLET PERFORMANCE MODE: no blur/filter animations, no glow shadows, no blend modes --- */
+  @media (max-width:900px),(pointer:coarse){
+    .rs-piece,.rs-spark,.rs-ribbon,.rs-trail{will-change:auto;}
+    .rs-blob{filter:none;animation:none;will-change:auto;opacity:.5;}
+    .rs-blob.b1{background:radial-gradient(circle,#c4b5fd 0,rgba(196,181,253,0) 68%);}
+    .rs-blob.b2{background:radial-gradient(circle,#f9a8d4 0,rgba(249,168,212,0) 68%);}
+    .rs-blob.b3{background:radial-gradient(circle,#a5f3fc 0,rgba(165,243,252,0) 68%);}
+    .reveal-stage.is-boom .rs-blob,.reveal-stage.is-count .rs-blob{animation:none;opacity:.6;}
+    .reveal-stage.is-boom .rs-rays{animation:none;width:130vmax;height:130vmax;margin:-65vmax 0 0 -65vmax;}
+    .rs-num,.rs-finally{filter:none;}
+    .rs-sound{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.96);}
+    .rs-ember,.rs-spark,.rs-trail{box-shadow:none;}
+    .rs-spark{width:4px;height:4px;}
+    .rs-beam{display:none;}
+    .reveal-stage.is-boom .rs-finally::after{display:none;}
+    @keyframes rsPop{0%{transform:scale(2.3);opacity:0;}25%{transform:scale(1);opacity:1;}85%{opacity:1;}100%{transform:scale(.82);opacity:.25;}}
+    @keyframes rsSlam{0%{opacity:0;transform:scale(3.2);}60%{opacity:1;transform:scale(.94);}100%{opacity:1;transform:scale(1);}}
+    @keyframes rsLetter{0%{opacity:0;transform:translateY(60px) scale(.4) rotate(-12deg);}100%{opacity:1;transform:none;}}
+    @keyframes rsGlowPulse{0%,100%{opacity:1;}}
+    @keyframes rsWave{0%{opacity:.9;transform:scale(1);}100%{opacity:0;transform:scale(9);}}
+  }
   @media (max-height:520px){
     .reveal-stage{padding-top:calc(34px + env(safe-area-inset-top,0px));padding-bottom:calc(34px + env(safe-area-inset-bottom,0px));}
     .rs-num{font-size:34vh;}
@@ -909,7 +930,7 @@
       const t = document.createElement('i'); t.className = 'rs-trail';
       t.style.setProperty('--fx', x+'px'); t.style.setProperty('--h', h+'px');
       stage.appendChild(t); setTimeout(()=>t.remove(), 900);
-      timers.push(setTimeout(()=>shimmer(x, apex, m ? 28 : 48, m ? 64 : 104), 700));
+      timers.push(setTimeout(()=>shimmer(x, apex, m ? 14 : 48, m ? 56 : 104), 700));
     }
     function ribbons(n){ // silk streamers drifting down
       const cs = ['#d4af37','#e3c15f','#7c3aed','#a78bfa','#db2777','#f0a8c8'];
@@ -945,19 +966,22 @@
       }
     }
     function boom(){
-      const m = innerWidth < 700, lite = m && (navigator.hardwareConcurrency || 8) <= 4;
-      const k = n => lite ? Math.round(n*0.7) : n;   // lighter load on weak phones
-      sfx.boom(); embers(k(m ? 16 : 28));
+      const m = matchMedia('(max-width:900px),(pointer:coarse)').matches;   // phone / tablet = lite mode
+      sfx.boom(); embers(m ? 6 : 28);
       stage.classList.remove('is-count'); stage.classList.add('is-boom');
-      beams(); rings();
-      confetti(k(m ? 48 : 80));
-      timers.push(setTimeout(()=>ribbons(k(m ? 22 : 40)), 300));
-      timers.push(setTimeout(()=>confetti(k(m ? 32 : 56)), 900));
-      timers.push(setTimeout(()=>confetti(k(m ? 28 : 48)), 1900));
-      timers.push(setTimeout(()=>confetti(k(m ? 22 : 40)), 3000));
-      timers.push(setTimeout(rings, 1800));
-      [[.3,.22,.3],[.7,.78,.26],[1.1,.5,.34],[1.5,.3,.28],[1.9,.7,.32],[2.4,.15,.4],[2.8,.85,.38],[3.2,.5,.24]]
-        .forEach(([d,fx,ay])=>timers.push(setTimeout(()=>rocket(fx,ay,m), d*1000)));
+      rings();
+      confetti(m ? 18 : 80);
+      timers.push(setTimeout(()=>ribbons(m ? 8 : 40), 300));
+      timers.push(setTimeout(()=>confetti(m ? 12 : 56), 900));
+      timers.push(setTimeout(()=>confetti(m ? 10 : 48), 1900));
+      if(!m){
+        beams();
+        timers.push(setTimeout(()=>confetti(40), 3000));
+        timers.push(setTimeout(rings, 1800));
+      }
+      const R = m ? [[.4,.25,.3],[1.0,.75,.28],[1.6,.5,.34],[2.2,.3,.3]]
+                  : [[.3,.22,.3],[.7,.78,.26],[1.1,.5,.34],[1.5,.3,.28],[1.9,.7,.32],[2.4,.15,.4],[2.8,.85,.38],[3.2,.5,.24]];
+      R.forEach(([d,fx,ay])=>timers.push(setTimeout(()=>rocket(fx,ay,m), d*1000)));
       if(navigator.vibrate) navigator.vibrate([40,30,80]);
     }
     function play(){
